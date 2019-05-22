@@ -6,7 +6,8 @@ import pymysql
 
 
 user_agent = [
-    "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0"
 ]
 
 
@@ -17,7 +18,10 @@ def extract_html(html):
     res = re.findall(r'<div id="imgTagWrapperId" class="imgTagWrapper">(.*?)</div>', html, re.S)
     # 猜测更换规则
     if len(res) > 0:
-        image = re.findall(r'(https://.*?.jpg)', res[0], re.S)[0]
+        image = re.findall(r"'colorImages': (.*?}]}),", html, re.S)[0]
+        # image = re.findall(r'(https://.*?.jpg)', res[0], re.S)[0:3]
+
+        # image = selector.xpath('//*[@id="altImages"]//img/@src')
 
         # 品牌
         brand = selector.xpath('//*[@id="bylineInfo"]/text()')[0].strip()
@@ -129,7 +133,8 @@ def request_inter_function(url):
      }
 
     headers = {'user-agent': random.choice(user_agent)}
-    cookies = dict(cookies_are='ubid-main=130-6909477-6814051; session-id=136-3668404-3121828; session-id-time=2082787201l; unique_id=bVxZg7tNL0CHJTeHKNWBKXhJXPg4Tl6W; x-wl-uid=1rroGsm7tlEfw5b3HEEEPSVcALE0Gi5dBSFkyVPo7frABgpnD2rCPxLrBzDiorpQPHO2XuDhKNhoIBKwd/5FWIw==; sst-main=Sst1|PQHDVjy04PrJ-YC2dTupMj7kCz5ZPouyZDaaOgBzcqQIIzhgKK6F7lY37afQlJdk4O5V8VjgxcUgkN7xy4rW2kJQoIDHLudzrNyOpzXiAUdpKShoH7LsUw1LfqBA0ph_Oj3_zEKqL6Sj-2LPuV5w0sv0IszxbYC2gTEQpZV-lPIijwPcWreYfEIG9ognx8xJucc4lHUFJ2HGv8GdSOYVyBmCh0cax-U4LGP-22cRLNhKyKqN5Ng-QxILSMwmqyoH2Jc9hEAuZPThgKl8WFNMuczOXt6raBJ4f3VrHpGp6k12CnCwv8CVU3n-CXlFFuD4dZFlzDZfCjPt5gFzqJJA_qwugQ; i18n-prefs=USD; session-token="LzPO8DKZvFZcwvJNvQEWC7QBcgx3LXN2kpA102scW1wMufj5UVJRyMj1nSUlK5zo7eqmFVDXOCvyFV5qNR6WZ0f8jLN8MqP/nevxQmoRu9lcSIzdtRbRs7QUVBSDeIAXIjsWF2A7I89nS5A7NP63d8hVPA268Yf+OhOvhNYB/I3Hlm6sC+TZc/+XNzY6PoVRs/tGgextkKuqmOb7WsCJaw=="; skin=noskin; csm-hit=tb:s-X1FWMEAYGAXYXYAY7D3N|1555325090967&t:1555325102699&adb:adblk_no' )
+    # cookies = dict(cookies_are='ubid-main=130-6909477-6814051; session-id=136-3668404-3121828; session-id-time=2082787201l; unique_id=bVxZg7tNL0CHJTeHKNWBKXhJXPg4Tl6W; x-wl-uid=1rroGsm7tlEfw5b3HEEEPSVcALE0Gi5dBSFkyVPo7frABgpnD2rCPxLrBzDiorpQPHO2XuDhKNhoIBKwd/5FWIw==; sst-main=Sst1|PQHDVjy04PrJ-YC2dTupMj7kCz5ZPouyZDaaOgBzcqQIIzhgKK6F7lY37afQlJdk4O5V8VjgxcUgkN7xy4rW2kJQoIDHLudzrNyOpzXiAUdpKShoH7LsUw1LfqBA0ph_Oj3_zEKqL6Sj-2LPuV5w0sv0IszxbYC2gTEQpZV-lPIijwPcWreYfEIG9ognx8xJucc4lHUFJ2HGv8GdSOYVyBmCh0cax-U4LGP-22cRLNhKyKqN5Ng-QxILSMwmqyoH2Jc9hEAuZPThgKl8WFNMuczOXt6raBJ4f3VrHpGp6k12CnCwv8CVU3n-CXlFFuD4dZFlzDZfCjPt5gFzqJJA_qwugQ; i18n-prefs=USD; session-token="LzPO8DKZvFZcwvJNvQEWC7QBcgx3LXN2kpA102scW1wMufj5UVJRyMj1nSUlK5zo7eqmFVDXOCvyFV5qNR6WZ0f8jLN8MqP/nevxQmoRu9lcSIzdtRbRs7QUVBSDeIAXIjsWF2A7I89nS5A7NP63d8hVPA268Yf+OhOvhNYB/I3Hlm6sC+TZc/+XNzY6PoVRs/tGgextkKuqmOb7WsCJaw=="; skin=noskin; csm-hit=tb:s-X1FWMEAYGAXYXYAY7D3N|1555325090967&t:1555325102699&adb:adblk_no' )
+    cookies = dict(cookies_are='session-id=135-9235188-0603150; session-id-time=2082787201l; i18n-prefs=USD; ubid-main=133-6558917-4645705; x-wl-uid=1S/euqoSzy8eZmb99Ie6FAsBKgipQjAsk5cHFm5ZuJZ6iv/ycfTdup+Ssg+VVHOoBSaCw6qhDShg=; lc-main=en_US; skin=noskin; session-token=S7CvFZ6ng0VvCPkfkzpEKiE6OChV+LF5KqpRm7mqeb+c9lrHAI1lij2lUE4FEhAhOjRWyspp/KRZQae3QWzFGuCUiOc0R0lKJ4+5GIA1aeFNBzLGuDK8utnRBlCpdEst2GmIqB0iKS0cSXLkGytv1e5N4+26pN68He9kJfE5y9v8mU2OZpjp+utKcHFZr7BB; csm-hit=tb:5DRDWRDWX92TR5F820Y9+s-2YN2R7A7C41VXYYQRCNP|1558498924717&t:1558498924717&adb:adblk_no' )
 
     # 除了返回状态不是200之外   还有可能连接超时, 如果连接超时了就调用自身方法重新请求
     # response = requests.get(url, cookies=cookies, proxies=proxies, headers=headers)
@@ -175,7 +180,7 @@ def extract_asin(html):
         shop_details_inter_url = 'https://www.amazon.com/dp/{}'.format(shop_details_inter)
         outer_url.append(shop_details_inter_url)
 
-    print(outer_url)
+    print("outer_url\t",outer_url)
     return outer_url
 
 
@@ -199,7 +204,6 @@ num = 0
 for item in read():
     num += 1
     print("当前请求次数\t", num)
-    print("url\t",item['url'])
     d_html = request_inter_function(item['url'])
     asin_list = extract_asin(d_html)
     for detalis_url in asin_list:
@@ -212,9 +216,30 @@ for item in read():
 
             print("ret_data_list\t", ret_data_list)
 
-            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], detalis_url.replace("https://www.amazon.com/dp/", ""), "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
+            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
+                ret_data_list[2], pymysql.escape_string(ret_data_list[0]), ret_data_list[1],
+                detalis_url.replace("https://www.amazon.com/dp/", ""),
+                "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")), ret_data_list[4], pymysql.escape_string(ret_data_list[3]),
+                "Toys & Games", ret_data_list[5], ret_data_list[6])
             write_sql(sql)
-
             print("新增数据成功!")
         except:
             print("error!")
+        # # 返回数据集合
+        # try:
+        #     # 返回商品详情页网页源代码
+        #     html = request_inter_function(detalis_url)
+        #     ret_data_list = list(extract_html(html))
+        #
+        #     print("ret_data_list\t", ret_data_list)
+        #
+        #     sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], detalis_url.replace("https://www.amazon.com/dp/", ""), "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
+        #     write_sql(sql)
+        #
+        #     print("新增数据成功!")
+        # except:
+        #     print("error!")
+# url = "https://www.amazon.com/dp/B07JBNS2TS"
+# html = request_inter_function(url)
+# print(html)
+# print(extract_asin(html))
