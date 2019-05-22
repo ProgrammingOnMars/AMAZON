@@ -178,7 +178,6 @@ def extract_asin(html):
     print(outer_url)
     return outer_url
 
-url = "https://www.amazon.com/dp/B078M7Q682?ref_=Oct_LDealsC_328182011_1&pf_rd_p=1fa367c8-ef57-5466-b15a-86c24bad898c&pf_rd_s=merchandised-search-8&pf_rd_t=101&pf_rd_i=328182011&pf_rd_m=ATVPDKIKX0DER&pf_rd_r=3X29P6P2N302PDD5SBR3&pf_rd_r=3X29P6P2N302PDD5SBR3&pf_rd_p=1fa367c8-ef57-5466-b15a-86c24bad898c"
 
 
 # 读取待爬取url
@@ -213,7 +212,7 @@ for item in read():
 
             print("ret_data_list\t", ret_data_list)
 
-            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], url.replace("https://www.amazon.com/dp/", ""), "U{}".format(url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
+            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], detalis_url.replace("https://www.amazon.com/dp/", ""), "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
             write_sql(sql)
 
             print("新增数据成功!")
