@@ -6,8 +6,6 @@ def write_sql(sql):
 
     # 使用cursor()方法获取操作游标
     cursor = db.cursor()
-
-
     # SQL 插入语句
     # 执行sql语句
     cursor.execute(sql)

@@ -19,10 +19,8 @@ def extract_html(html):
     if len(res) > 0:
         image = re.findall(r'(https://.*?.jpg)', res[0], re.S)[0]
 
-
         # 品牌
         brand = selector.xpath('//*[@id="bylineInfo"]/text()')[0].strip()
-
         # 快递时间说明
         try:
             explanation_of_express_time = selector.xpath('//*[@id="delivery-message"]')[0].xpath('string(.)').strip()
@@ -65,10 +63,10 @@ def extract_html(html):
             if 'Get' in arrival_time:
                 return price, freight, shop_name, image, arrival_time, brand, explanation_of_express_time
             else:
-                return price, freight, shop_name, image, '以amazon Free shipping 到货时间为准', brand, explanation_of_express_time
+                return price, freight, shop_name, image, 'Based on amazon free shipping', brand, explanation_of_express_time
 
 
-        return price, freight, shop_name, image, "以amazon Free shipping 到货时间为准", brand, explanation_of_express_time
+        return price, freight, shop_name, image, "Based on amazon free shipping", brand, explanation_of_express_time
 
     else:
         # 图片规则 (图书类型商品)
@@ -92,7 +90,7 @@ def extract_html(html):
         # 商品名称
         pic_shop_name = selector.xpath('//*[@id="productTitle"]/text()')[0].strip()
         # 到货时间
-        arrival_time = "以amazon Free shipping 到货时间为准"
+        arrival_time = "Based on amazon free shipping"
 
         # 　价格
         try:
@@ -167,10 +165,18 @@ def query(url):
         return False
 
 
-def extract_project(html):
-    select = etree.HTML(html)
-    select.xpath("")
+# 提取页面的Asin
+def extract_asin(html):
+    asin_list = re.findall(r'data-asin="(.*?)"', html, re.S)
+    print(asin_list)
+    print(len(asin_list))
+    outer_url = []
+    for shop_details_inter in asin_list:
+        shop_details_inter_url = 'https://www.amazon.com/dp/{}'.format(shop_details_inter)
+        outer_url.append(shop_details_inter_url)
 
+    print(outer_url)
+    return outer_url
 
 url = "https://www.amazon.com/dp/B078M7Q682?ref_=Oct_LDealsC_328182011_1&pf_rd_p=1fa367c8-ef57-5466-b15a-86c24bad898c&pf_rd_s=merchandised-search-8&pf_rd_t=101&pf_rd_i=328182011&pf_rd_m=ATVPDKIKX0DER&pf_rd_r=3X29P6P2N302PDD5SBR3&pf_rd_r=3X29P6P2N302PDD5SBR3&pf_rd_p=1fa367c8-ef57-5466-b15a-86c24bad898c"
 
@@ -180,8 +186,8 @@ def read():
     db = pymysql.connect("120.79.192.201", "root", "1qaz2wsx#EDC", "amazon")
     cursor = db.cursor(pymysql.cursors.DictCursor)
     # 使用cursor()方法获取操作游标
-    sql = 'select id, url from all_url where whether_to_crawl="0" limit 0, 100 '
-    # sql = 'select * from all_url'
+    # sql = 'select id, url from all_url where whether_to_crawl="0" limit 0, 100 '
+    sql = 'select * from all_url'
     cursor.execute(sql)
 
     # conn().close()
@@ -189,28 +195,27 @@ def read():
     return cursor.fetchall()
 
 
-# res = read()
-# for s in res:
-#     print(s)
-#
+
 num = 0
 for item in read():
     num += 1
     print("当前请求次数\t", num)
-    print(item['url'])
-    # 返回商品详情页网页源代码
-    html = request_inter_function(url)
-    # 返回数据集合
-    try:
-        ret_data_list = list(extract_html(html))
+    print("url\t",item['url'])
+    d_html = request_inter_function(item['url'])
+    asin_list = extract_asin(d_html)
+    for detalis_url in asin_list:
 
-        print("ret_data_list\t", ret_data_list)
+        # 返回数据集合
+        try:
+            # 返回商品详情页网页源代码
+            html = request_inter_function(detalis_url)
+            ret_data_list = list(extract_html(html))
 
-        sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], url.replace("https://www.amazon.com/dp/", ""), "U{}".format(url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
+            print("ret_data_list\t", ret_data_list)
 
-        write_sql(sql)
+            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], url.replace("https://www.amazon.com/dp/", ""), "U{}".format(url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
+            write_sql(sql)
 
-        print("新增数据成功!")
-    except:
-        print("error!")
-
+            print("新增数据成功!")
+        except:
+            print("error!")

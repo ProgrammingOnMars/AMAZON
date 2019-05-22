@@ -20,16 +20,18 @@ def extract(html):
     select = etree.HTML(html)
     element = select.xpath('//*[@class="a-unordered-list a-nostyle a-vertical s-ref-indent-one"]//li/span/a/@href')
 
-
+    print(element)
+    print(len(element))
+    quit()
     for ele in element:
         url = "https://www.amazon.com{}".format(ele)
-        print(url)
+        print("url\t",url)
 
         p_num = page_num(request_inter_function(url))
 
         rh = "https://www.amazon.com/s?{}".format(re.findall(r'(rh=.*?&)', ele, re.S)[0])
 
-        print('rh_\t', rh)
+        quit()
         for n in range(1, int(p_num)):
             url = "{}page={}".format(rh, n)
 
@@ -47,8 +49,13 @@ def extract(html):
     # print(len(element))
 
 
+#
+# url = 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Dtoys-and-games&field-keywords='
+# html = request_inter_function(url)
+#
+# extract(html)
 
 url = 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Dtoys-and-games&field-keywords='
 html = request_inter_function(url)
 
-extract(html)
+page_num(html)
