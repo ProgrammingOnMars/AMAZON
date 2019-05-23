@@ -3,7 +3,13 @@ import random
 from lxml import etree
 import re
 import pymysql
+import datetime
 
+
+
+'''
+   爬取url
+'''
 
 user_agent = [
     "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36",
@@ -19,9 +25,8 @@ def extract_html(html):
     # 猜测更换规则
     if len(res) > 0:
         image = re.findall(r"'colorImages': (.*?}]}),", html, re.S)[0]
-        # image = re.findall(r'(https://.*?.jpg)', res[0], re.S)[0:3]
+        image = str(re.findall(r'"large":"(https://.*?.jpg)"', image, re.S))
 
-        # image = selector.xpath('//*[@id="altImages"]//img/@src')
 
         # 品牌
         brand = selector.xpath('//*[@id="bylineInfo"]/text()')[0].strip()
@@ -74,12 +79,15 @@ def extract_html(html):
 
     else:
         # 图片规则 (图书类型商品)
-        try:
-            img_content = re.findall(r'<div id="img-canvas".*?>(.*?)</div>', html, re.S)[0]
-            pic_img_url = re.findall(r'(https://.*?.jpg)', img_content, re.S)[0]
-        except:
-            # pic_img_url = re.findall(r'(https://.*?.jpg)', html, re.S)[1]
-            pic_img_url = ''
+        # try:
+        #     img_content = re.findall(r'<div id="img-canvas".*?>(.*?)</div>', html, re.S)[0]
+        #     pic_img_url = re.findall(r'(https://.*?.jpg)', img_content, re.S)[0]
+        # except:
+        #     # pic_img_url = re.findall(r'(https://.*?.jpg)', html, re.S)[1]
+        #     pic_img_url = ''
+        # 图片规则 (图书类型商品)
+        pic_img_url_content = re.findall(r"'colorImages': (.*?}]}),", html, re.S)[0]
+        pic_img_url = re.findall(r'"large":"(https://.*?.jpg)"', pic_img_url_content, re.S)
         # 运费
         try:
             # pic_freight = re.findall(r'+(.*?)shipping', html, re.S)
@@ -191,12 +199,20 @@ def read():
     cursor = db.cursor(pymysql.cursors.DictCursor)
     # 使用cursor()方法获取操作游标
     # sql = 'select id, url from all_url where whether_to_crawl="0" limit 0, 100 '
-    sql = 'select * from all_url'
+    sql = 'select * from all_url where climb="0" limit 0, 100 for update'
     cursor.execute(sql)
-
+    crawl_url = cursor.fetchall()
+    for date in crawl_url:
+        nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 现在
+        # 行加锁
+        sql = "UPDATE all_url SET climb=1, date='{}' WHERE id = {}; ".format(
+            nowTime, date['id'])
+        cursor.execute(sql)
     # conn().close()
+    # conn().close()
+    db.commit()
 
-    return cursor.fetchall()
+    return crawl_url
 
 
 
@@ -207,7 +223,6 @@ for item in read():
     d_html = request_inter_function(item['url'])
     asin_list = extract_asin(d_html)
     for detalis_url in asin_list:
-
         # 返回数据集合
         try:
             # 返回商品详情页网页源代码
@@ -215,30 +230,23 @@ for item in read():
             ret_data_list = list(extract_html(html))
 
             print("ret_data_list\t", ret_data_list)
-
-            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
+            nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 现在
+            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time,create_time) VALUES(\"{}\", '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
                 ret_data_list[2], pymysql.escape_string(ret_data_list[0]), ret_data_list[1],
                 detalis_url.replace("https://www.amazon.com/dp/", ""),
-                "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")), ret_data_list[4], pymysql.escape_string(ret_data_list[3]),
-                "Toys & Games", ret_data_list[5], ret_data_list[6])
+                "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")), ret_data_list[4],
+                pymysql.escape_string(ret_data_list[3]),
+                "Video Games", ret_data_list[5], ret_data_list[6], nowTime)
+
+            print("报错之前的sql\t", sql)
             write_sql(sql)
             print("新增数据成功!")
         except:
             print("error!")
-        # # 返回数据集合
-        # try:
-        #     # 返回商品详情页网页源代码
-        #     html = request_inter_function(detalis_url)
-        #     ret_data_list = list(extract_html(html))
-        #
-        #     print("ret_data_list\t", ret_data_list)
-        #
-        #     sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time) VALUES('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(ret_data_list[2], ret_data_list[0], ret_data_list[1], detalis_url.replace("https://www.amazon.com/dp/", ""), "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")),ret_data_list[4], ret_data_list[3], "Toys & Games", ret_data_list[5], ret_data_list[6])
-        #     write_sql(sql)
-        #
-        #     print("新增数据成功!")
-        # except:
-        #     print("error!")
+            quit()
+
+
+
 # url = "https://www.amazon.com/dp/B07JBNS2TS"
 # html = request_inter_function(url)
 # print(html)

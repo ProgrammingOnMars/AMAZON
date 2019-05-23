@@ -18,11 +18,11 @@ def page_num(html):
 
 def extract(html):
     select = etree.HTML(html)
-    element = select.xpath('//*[@class="a-unordered-list a-nostyle a-vertical s-ref-indent-one"]//li/span/a/@href')
+    element = select.xpath('//*[@class="a-unordered-list a-nostyle a-vertical s-ref-indent-one"]//li/span/a/@href')[0:2]
 
     print(element)
     print(len(element))
-    quit()
+
     for ele in element:
         url = "https://www.amazon.com{}".format(ele)
         print("url\t",url)
@@ -31,17 +31,17 @@ def extract(html):
 
         rh = "https://www.amazon.com/s?{}".format(re.findall(r'(rh=.*?&)', ele, re.S)[0])
 
-        quit()
+
         for n in range(1, int(p_num)):
             url = "{}page={}".format(rh, n)
 
             print("url\t", url)
 
-            sql = 'insert into all_url (url) values("{}")'.format(url)
+            sql = 'insert into all_url (url, classification, climb) values("{}", "Video Games", "0")'.format(url)
             write_sql(sql)
 
-
-        sql = 'insert into next_url (url, page_num) values("{}", "{}")'.format(url, p_num)
+        # quit()
+        sql = 'insert into next_url (url, page_num, sort) values("{}", "{}", "Video Games")'.format(url, p_num)
         write_sql(sql)
 
 
@@ -54,8 +54,7 @@ def extract(html):
 # html = request_inter_function(url)
 #
 # extract(html)
-
-url = 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Dtoys-and-games&field-keywords='
+url = 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Dvideogames&field-keywords='
 html = request_inter_function(url)
 
-page_num(html)
+extract(html)
