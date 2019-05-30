@@ -145,8 +145,8 @@ def request_inter_function(url):
     cookies = dict(cookies_are='session-id=135-9235188-0603150; session-id-time=2082787201l; i18n-prefs=USD; ubid-main=133-6558917-4645705; x-wl-uid=1S/euqoSzy8eZmb99Ie6FAsBKgipQjAsk5cHFm5ZuJZ6iv/ycfTdup+Ssg+VVHOoBSaCw6qhDShg=; lc-main=en_US; skin=noskin; session-token=S7CvFZ6ng0VvCPkfkzpEKiE6OChV+LF5KqpRm7mqeb+c9lrHAI1lij2lUE4FEhAhOjRWyspp/KRZQae3QWzFGuCUiOc0R0lKJ4+5GIA1aeFNBzLGuDK8utnRBlCpdEst2GmIqB0iKS0cSXLkGytv1e5N4+26pN68He9kJfE5y9v8mU2OZpjp+utKcHFZr7BB; csm-hit=tb:5DRDWRDWX92TR5F820Y9+s-2YN2R7A7C41VXYYQRCNP|1558498924717&t:1558498924717&adb:adblk_no' )
 
     # 除了返回状态不是200之外   还有可能连接超时, 如果连接超时了就调用自身方法重新请求
-    # response = requests.get(url, cookies=cookies, proxies=proxies, headers=headers)
-    response = requests.get(url, cookies=cookies, headers=headers)
+    response = requests.get(url, cookies=cookies, proxies=proxies, headers=headers)
+    # response = requests.get(url, cookies=cookies, headers=headers)
 
     return response.text
 
@@ -223,27 +223,44 @@ for item in read():
     d_html = request_inter_function(item['url'])
     asin_list = extract_asin(d_html)
     for detalis_url in asin_list:
+        # 返回商品详情页网页源代码
+        html = request_inter_function(detalis_url)
+        ret_data_list = list(extract_html(html))
+
+        print("ret_data_list\t", ret_data_list)
+        nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 现在
+        sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time,create_time) VALUES(\"{}\", '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
+            ret_data_list[2], pymysql.escape_string(ret_data_list[0]), ret_data_list[1],
+            detalis_url.replace("https://www.amazon.com/dp/", ""),
+            "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")),
+            pymysql.escape_string(ret_data_list[4]),
+            pymysql.escape_string(ret_data_list[3]),
+            "Video Games", pymysql.escape_string(ret_data_list[5]), pymysql.escape_string(ret_data_list[6]), nowTime)
+
+        print("报错之前的sql\t", sql)
+        write_sql(sql)
+        print("新增数据成功!")
         # 返回数据集合
-        try:
-            # 返回商品详情页网页源代码
-            html = request_inter_function(detalis_url)
-            ret_data_list = list(extract_html(html))
-
-            print("ret_data_list\t", ret_data_list)
-            nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 现在
-            sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time,create_time) VALUES(\"{}\", '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
-                ret_data_list[2], pymysql.escape_string(ret_data_list[0]), ret_data_list[1],
-                detalis_url.replace("https://www.amazon.com/dp/", ""),
-                "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")), ret_data_list[4],
-                pymysql.escape_string(ret_data_list[3]),
-                "Video Games", ret_data_list[5], ret_data_list[6], nowTime)
-
-            print("报错之前的sql\t", sql)
-            write_sql(sql)
-            print("新增数据成功!")
-        except:
-            print("error!")
-            quit()
+        # try:
+        #     # 返回商品详情页网页源代码
+        #     html = request_inter_function(detalis_url)
+        #     ret_data_list = list(extract_html(html))
+        #
+        #     print("ret_data_list\t", ret_data_list)
+        #     nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 现在
+        #     sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time,create_time) VALUES(\"{}\", '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
+        #         ret_data_list[2], pymysql.escape_string(ret_data_list[0]), ret_data_list[1],
+        #         detalis_url.replace("https://www.amazon.com/dp/", ""),
+        #         "U{}".format(detalis_url.replace("https://www.amazon.com/dp/", "")), pymysql.escape_string(ret_data_list[4]),
+        #         pymysql.escape_string(ret_data_list[3]),
+        #         "Video Games", pymysql.escape_string(ret_data_list[5]), pymysql.escape_string(ret_data_list[6]), nowTime)
+        #
+        #     print("报错之前的sql\t", sql)
+        #     write_sql(sql)
+        #     print("新增数据成功!")
+        # except:
+        #     print("error!")
+        #     quit()
 
 
 
