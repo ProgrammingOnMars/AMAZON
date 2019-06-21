@@ -1,7 +1,116 @@
 from lxml import etree
 from amazonCrawl.IOflow import *
 import re
+import datetime
 
+
+
+
+#　详情页面提取html
+def extract_details_page_html(html, details_url):
+    selector = etree.HTML(html)
+
+    res = re.findall(r'<div id="imgTagWrapperId" class="imgTagWrapper">(.*?)</div>', html, re.S)
+    # 猜测更换规则
+    # if len(res) > 0:
+    try:
+        image = re.findall(r"'colorImages': (.*?}]}),", html, re.S)[0]
+        image = str(re.findall(r'"large":"(https://.*?.jpg)"', image, re.S))
+    except:
+        image = ''
+
+    # 品牌
+    try:
+
+        brand = selector.xpath('//*[@id="bylineInfo"]/text()')[0].strip()
+    except:
+        brand = ''
+    # 快递时间说明
+    try:
+        explanation_of_express_time = selector.xpath('//*[@id="delivery-message"]')[0].xpath('string(.)').strip()
+    except:
+        explanation_of_express_time = ''
+    # 商品名称
+    try:
+
+        shop_name = selector.xpath('//*[@id="productTitle"]/text()')[0].strip()
+
+    except:
+        shop_name = selector.xpath('//*[@id="productTitle"]/text()')
+        print("没有提取shop_name\t", shop_name)
+        shop_name = ""
+    # 运费
+    try:
+        freight = selector.xpath('//*[@id="ourprice_shippingmessage"]/span/text()')[0].strip()
+        freight = re.findall(r'\$(.*?)ship', freight, re.S)[0]
+    except:
+        freight = '0'
+    #　价格
+    try:
+        price = selector.xpath('//*[@id="priceblock_dealprice"]/text()')[0].strip()
+    except:
+        try:
+            price = selector.xpath('//*[@id="priceblock_snsprice_Based"]/span/text()')[0].strip()
+        except:
+            try:
+                price = selector.xpath('//*[@id="priceblock_ourprice"]/text()')[0].strip()
+            except:
+                price = '0'
+
+    if 'See All Buying Options' in html:
+        price = '0'
+        return price, freight, shop_name, image, '此商品暂时无法购买', brand, explanation_of_express_time
+
+    # 到货时间
+    try:
+        arrival_time = re.findall(r'<span class="a-text-bold">(.*?)</span>', html, re.S)[0].strip()
+    except:
+        arrival_time = ''
+    # str = "".join(tuple(arrival_time))
+    # cont = re.sub(r'Get.*?,', '',arrival_time, re.S)[0].strip()
+    # cont = re.findall(r'Get.*?,(.*?)', arrival_time, re.S)[0]
+    # if '<span class="a-text-bold">Add-on Item</span>' in html:
+    #     if 'Add-on Item' in html:
+    #         return price, freight, shop_name, image, "add-on 产品，无法单独购买", brand, explanation_of_express_time
+
+    # if 'Get' and 'FREE Shipping' in html:
+    #     if 'Get' in arrival_time:
+    #         return price, freight, shop_name, image, arrival_time, brand, explanation_of_express_time
+    #     else:
+    #         return price, freight, shop_name, image, 'Based on amazon free shipping', brand, explanation_of_express_time
+
+    if brand==None:
+        brand = ''
+    nowTime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 现在
+    sql = "INSERT INTO commodity_base(title, price, freight, ASIN, sku, arrival_time, picture, classification, brand, explanation_of_express_time,create_time) VALUES(\"{}\", '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}');".format(
+        pymysql.escape_string(shop_name), pymysql.escape_string(price), pymysql.escape_string(freight),
+        details_url.replace("https://www.amazon.com/dp/", ""),
+        "U{}".format(details_url.replace("https://www.amazon.com/dp/", "")),
+        pymysql.escape_string(explanation_of_express_time),
+        pymysql.escape_string(image),
+        "Feeding", pymysql.escape_string(brand),
+        pymysql.escape_string(explanation_of_express_time), nowTime)
+
+    # print("sql\t", sql)
+    write_sql(sql)
+    print("\t\t\t\t===================================新增数据成功!==============================")
+    # return price, freight, shop_name, image, "Based on amazon free shipping", brand, explanation_of_express_time
+
+
+
+
+# 提取搜索结果页面的Asin
+def extract_asin(html):
+    asin_list = re.findall(r'data-asin="(.*?)"', html, re.S)
+    print(asin_list)
+    print(len(asin_list))
+    outer_url = []
+    for shop_details_inter in asin_list:
+        shop_details_inter_url = 'https://www.amazon.com/dp/{}'.format(shop_details_inter)
+        outer_url.append(shop_details_inter_url)
+
+    # print("outer_url\t",outer_url)
+    return outer_url
 
 
 '''
