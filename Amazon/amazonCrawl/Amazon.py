@@ -39,23 +39,21 @@ def main():
     num = 0
     for item in read():
         num += 1
-        try:
-            d_html = request_inter_function(item['url'])
+        d_html = request_inter_function(item['url'])
 
-            # browser.get(item['url'])
-            # browser.implicitly_wait(20)
-            # print(d_html)
-            # asin_list = extract_asin(browser.page_source)
-            asin_list = extract_asin(d_html)
-            print("asin_list\t", asin_list)
-            for detalis_url in asin_list:
-                print("当前请求次数\t", num)
-                # 返回商品详情页网页源代码
-                html = request_inter_function(detalis_url)
+        # browser.get(item['url'])
+        # browser.implicitly_wait(20)
+        # print(d_html)
+        # asin_list = extract_asin(browser.page_source)
+        asin_list = extract_asin(d_html)
+        print("asin_list\t", asin_list)
+        for detalis_url in asin_list:
+            print("当前请求次数\t", num)
+            # 返回商品详情页网页源代码
+            html = request_inter_function(detalis_url)
 
-                extract_details_page_html(html, detalis_url)
-        except:
-            print("报错@继续执行下去")
+            extract_details_page_html(html, detalis_url)
+
 
 
 

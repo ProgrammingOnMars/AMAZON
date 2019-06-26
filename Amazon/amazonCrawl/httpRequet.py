@@ -44,8 +44,8 @@ def request_inter_function(url):
     #     'https': 'http://lum-customer-hl_04c4aa62-zone-static:nqfk9aqs3svh@zproxy.lum-superproxy.io:22225'
     #  }
     proxies = {
-        'http': '182.34.212.84:4246',
-        'https': '182.34.212.84:4246'
+        'http': '117.63.8.163:4286',
+        'https': '117.63.8.163:4286'
     }
 
 
